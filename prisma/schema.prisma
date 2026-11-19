@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String             @id @default(cuid())
+  email        String             @unique
+  name         String
+  passwordHash String
+  sessions     Session[]
+  entries      JournalEntry[]
+  moods        MoodEntry[]
+  habits       Habit[]
+  goals        Goal[]
+  reviews      WeeklyReflection[]
+  settings     UserSettings?
+}
+
+model Session {
+  id      String   @id
+  userId  String
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires DateTime
+}
+
+model JournalEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  title     String
+  date      String
+  content   String
+  mood      String
+  tags      Json
+  emotions  Json
+  category  String
+  duration  Int
+  image     String?
+
+  @@index([userId])
+}
+
+model MoodEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  date      String
+  mood      String
+  emotions  Json
+
+  @@index([userId])
+}
+
+model Habit {
+  id          String            @id @default(cuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  name        String
+  schedule    Json
+  reminder    String
+  completions HabitCompletion[]
+
+  @@index([userId])
+}
+
+model Goal {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  category  String
+  title     String
+  action    String
+  notes     String
+  history   Json
+
+  @@index([userId])
+}
+
+model WeeklyReflection {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  period    String
+  date      String
+  answers   Json
+
+  @@index([userId])
+}
+
+model UserSettings {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  preferences Json
+
+  @@index([userId])
+}
+
+model HabitCompletion {
+  id      String @id @default(cuid())
+  habitId String
+  habit   Habit  @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  date    String
+  status  String
+
+  @@unique([habitId, date])
+}
