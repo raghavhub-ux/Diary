@@ -84,7 +84,43 @@ export function Provider({ children }) {
       })
       .finally(() => busy(false));
   }, []);
+  useEffect(() => {
+    if (!user || user.demo) return;
+    let active = true,
+      fetching = false;
+    async function refresh() {
+      if (document.hidden || fetching) return;
+      fetching = true;
+      const before = dataRef.current;
+      try {
+        const all = await Promise.all([
+          ...resources.map((k) => api(k)),
+          api("settings"),
+        ]);
+        if (active && before === dataRef.current) {
+          apply(Object.fromEntries(resources.map((k, i) => [k, all[i]])));
+          setPrefs({ ...defaults, ...all.at(-1) });
+        }
+      } catch {
+        /* Keep the current view when a device temporarily loses internet. */
+      } finally {
+        fetching = false;
+      }
+    }
+    const timer = setInterval(refresh, 20000);
+    window.addEventListener("focus", refresh);
+    window.addEventListener("online", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      active = false;
+      clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("online", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [user?.id]);
   async function change(k, method, value, id) {
+    const previousVersion = value?.updatedAt;
     let rows = dataRef.current[k],
       record;
     if (id === "") throw Error("Missing record ID");
@@ -98,7 +134,11 @@ export function Provider({ children }) {
       };
       record.createdAt ??= record.updatedAt;
       if (k === "habits") record.completions ??= [];
-    } else record = await api(k + (id ? "/" + id : ""), method, value);
+    } else
+      record = await api(k + (id ? "/" + id : ""), method, {
+        ...value,
+        previousVersion,
+      });
     rows = dataRef.current[k];
     const next = {
       ...dataRef.current,
@@ -145,6 +185,10 @@ export function Provider({ children }) {
     Object.keys(sessionStorage)
       .filter((k) => k.startsWith("ms-draft:"))
       .forEach((k) => sessionStorage.removeItem(k));
+    if (user.hosted) {
+      window.location.assign("/signout-with-chatgpt?return_to=%2F");
+      return;
+    }
     setUser(null);
     apply(null);
   }

@@ -72,3 +72,9 @@ Deploy as one Node service with a persistent writable volume, an HTTPS reverse p
 Passwords are hashed with bcrypt. Sessions use random tokens, stored as hashes on the server, with a seven-day expiry. Production cookies use HttpOnly, Secure and SameSite=Strict. Every protected record lookup is scoped to its owner. Account deletion cascades through associated records in the live database. Configure backup expiration separately.
 
 HTTPS protects traffic in transit. Volume encryption protects stored files when the encryption key is unavailable. The running server can read entries to return them to their owner. True end-to-end encryption would require encryption and decryption on the user's device with keys unavailable to the server. This application uses server-readable storage. Protect devices and exported files accordingly.
+
+## Phone and computer sync
+
+The private hosted edition opens with your ChatGPT account on either device. Save the entry before switching devices. The journal refreshes when you return to the tab and every 20 seconds while visible. Drafts and sample journals stay on the device. Use Settings → Export JSON in an earlier local journal and import the file into the hosted journal to transfer saved entries. The optional AI provider is offline on this deployment.
+
+The hosted adapter in `hosted/` serves the same React application with owner-scoped D1 storage and Sites identity. The Express/Prisma application remains available for local development. Run `npm run test:sync` to build and exercise the hosted adapter.

@@ -163,6 +163,16 @@ export function Settings() {
                   )
                 )
                   return;
+                if (user.hosted) {
+                  if (
+                    prompt("Type DELETE to erase your hosted journal data") ===
+                    "DELETE"
+                  ) {
+                    await api("account", "DELETE", { confirmation: "DELETE" });
+                    await leave(true);
+                  }
+                  return;
+                }
                 const password = prompt("Enter your password to confirm");
                 if (password) {
                   await api("account", "DELETE", { password });

@@ -11,7 +11,9 @@
     "db:setup": "node prisma/prepare.js && prisma generate && prisma migrate deploy",
     "test": "node --test tests/*.test.js",
     "seed": "node --env-file=.env prisma/seed.js",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "build:hosted": "vite build && node hosted/build.js",
+    "test:sync": "npm run build:hosted && node --test hosted/sync.test.js"
   },
   "dependencies": {
     "@prisma/client": "6.19.0",
@@ -33,6 +35,9 @@
   "devDependencies": {
     "@playwright/test": "^1.65.1",
     "autoprefixer": "^10.4.21",
+    "drizzle-kit": "^0.31.11",
+    "drizzle-orm": "^0.45.4",
+    "esbuild": "^0.28.2",
     "postcss": "^8.5.3",
     "prettier": "^3.10.1",
     "prisma": "6.19.0",
